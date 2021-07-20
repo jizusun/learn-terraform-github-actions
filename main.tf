@@ -16,6 +16,8 @@ variable "shape" {
 }
 
 
+
+
 # Configure the OCI provider with an API Key
 # tenancy_ocid is the compartment OCID for the root compartment
 provider "oci" {
@@ -53,6 +55,11 @@ resource "oci_core_instance" "free_arm_instance1" {
     metadata = {
         ssh_authorized_keys = var.ssh_authorized_keys
     } 
+
+    shape_config {
+      memory_in_gbs = "24"
+      ocpus         = "4"
+    }
     preserve_boot_volume = false
 }
 
