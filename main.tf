@@ -49,4 +49,5 @@ resource "oci_core_instance" "generated_oci_core_instance" {
 		boot_volume_size_in_gbs = "100"
 		source_id = "ocid1.image.oc1.ap-seoul-1.aaaaaaaaun65t3akgpa6biuri74ed75vdl72yfd653kl3qnm4ihqqseftv6q"
 		source_type = "image"
-	
+  }
+}
