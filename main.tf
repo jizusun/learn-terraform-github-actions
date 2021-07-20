@@ -1,53 +1,63 @@
-# https://www.daniao.org/14035.html
+# https://docs.oracle.com/en-us/iaas/Content/API/SDKDocs/terraformproviderconfiguration.htm
+variable "tenancy_ocid" { }
+# variable "user_ocid" {}
+# variable "fingerprint" {}
+# variable "private_key_path" {}
+# variable "region" {}
+variable "subnet_id" { }
+variable "ssh_authorized_keys" { }
 
-provider "oci" {}
+variable "source_id" {
+  default = "ocid1.image.oc1.ap-seoul-1.aaaaaaaaun65t3akgpa6biuri74ed75vdl72yfd653kl3qnm4ihqqseftv6q"
+}
 
-resource "oci_core_instance" "generated_oci_core_instance" {
-	agent_config {
-		is_management_disabled = "false"
-		is_monitoring_disabled = "false"
-		plugins_config {
-			desired_state = "DISABLED"
-			name = "Vulnerability Scanning"
-		}
-		plugins_config {
-			desired_state = "ENABLED"
-			name = "Custom Logs Monitoring"
-		}
-		plugins_config {
-			desired_state = "ENABLED"
-			name = "Compute Instance Monitoring"
-		}
-		plugins_config {
-			desired_state = "DISABLED"
-			name = "Bastion"
-		}
-	}
-	availability_config {
-		recovery_action = "RESTORE_INSTANCE"
-	}
-	availability_domain = "pyBu:AP-SEOUL-1-AD-1"
-	compartment_id = "ocid1.tenancy.oc1..aaaaaaaa6jfy2codrwguxymqdzphaf56gd3cdsjrx5n7mfmdhdoodvnnzrvq"
-	create_vnic_details {
-		assign_private_dns_record = "true"
-		assign_public_ip = "true"
-		subnet_id = "ocid1.subnet.oc1.ap-seoul-1.aaaaaaaahmvkmgtl4wwxggqt4d5utqxd3g765tbmwnfvbh2r3lbytlfsrfha"
-	}
-	display_name = "instance"
-	instance_options {
-		are_legacy_imds_endpoints_disabled = "false"
-	}
-	metadata = {
-		"ssh_authorized_keys" = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDcrAbMbZ+iKOiwNhB0Mfeta21KZGR0XC2VD8ET77kSf6VEbqGLg7lmpHQ7Ytgpy85HaSVCg5j5jNr3H7I+KbqBoFIHR+j4OkG4AAOfwptO+9HlRKQiuaF6jYbZpi9pyFpMc8obFPlbOA2x8JkX5T/LC1gBOKaIad4tL6BIc+dPe8aFahppr6WsH67q9g0+heLxbDsqmE8O8VCXrOCW4VJoREyErJu4Y8t4003reOOuTinQB6azAhIBIbyWCGy5up3UHPRZ1GieFvkZRaq6t8/h8tvbEjYi/VFa+ycjIudCS/m6Whbbuxk79ZH6QbLZP3Z/+7JN1IYdUlJTe0qcBMeZaAMTfA6rHI2zsbNkPo0e+frSFHJ17kn6rLY3eRswBSTF6RsaicOddlo3P2pDIEBFbYO7MD4j1+rxvx3wEwtDabOb6je3ny0Gk4LFMaG7Y6+3Svt8Cfubqnca19VdWbTzvPkZbqgNijgoXegXid3wQHXMpsVjc7fo73iZvSrj3r0= jizusun@Jizus-MacBook-Pro.local"
-	}
-	shape = "VM.Standard.A1.Flex"
-	shape_config {
-		memory_in_gbs = "24"
-		ocpus = "4"
-	}
-	source_details {
-		boot_volume_size_in_gbs = "100"
-		source_id = "ocid1.image.oc1.ap-seoul-1.aaaaaaaaun65t3akgpa6biuri74ed75vdl72yfd653kl3qnm4ihqqseftv6q"
-		source_type = "image"
-  }
+variable "shape" {
+  default = "VM.Standard.A1.Flex"
+}
+
+
+# Configure the OCI provider with an API Key
+# tenancy_ocid is the compartment OCID for the root compartment
+provider "oci" {
+  tenancy_ocid = var.tenancy_ocid
+#   user_ocid = var.user_ocid
+#   fingerprint = var.fingerprint
+#   private_key_path = var.private_key_path
+#   region = var.region
+}
+
+# Get a list of Availability Domains
+data "oci_identity_availability_domains" "ads" {
+  compartment_id = var.tenancy_ocid
+}
+
+
+
+# https://docs.oracle.com/en-us/iaas/developer-tutorials/tutorials/tf-compute/01-summary.htm
+resource "oci_core_instance" "free_arm_instance1" {
+    # Required
+    availability_domain = data.oci_identity_availability_domains.ads.availability_domains[0].name
+    compartment_id = var.tenancy_ocid
+    shape = var.shape 
+    source_details {
+        source_id = var.source_id
+        source_type = "image"
+    }
+
+    # Optional
+    display_name = "free_arm_instance1"
+    create_vnic_details {
+        assign_public_ip = true
+        subnet_id = var.subnet_id
+    }
+    metadata = {
+        ssh_authorized_keys = var.ssh_authorized_keys
+    } 
+    preserve_boot_volume = false
+}
+
+
+
+output "public-ip-for-compute-instance" {
+  value = oci_core_instance.free_arm_instance1.public_ip
 }

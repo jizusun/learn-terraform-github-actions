@@ -1,0 +1,7 @@
+# check the `~/.oci/config`
+
+tenancy_ocid = ""
+# user_ocid = ""
+# fingerprint = ""
+# private_key_path = ""
+# region =  "ap-seoul-1"
